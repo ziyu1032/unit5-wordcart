@@ -1143,30 +1143,34 @@ function endGame(timedOut){
   if(S) S.ended = true;
   stopTimer();
   try{ player.pause(); }catch(e){}
-  const total = S.mode === 'l1' ? WORDS.length : (S.mode === 'l2' ? LEVEL2.length : WORDS.length + LEVEL2.length);
-  const l2recs = (S && S.l2records) ? S.l2records : [];
-  const completed = S.records.length + l2recs.length;
-  const perfect = S.records.filter(r=> r.errors === 0).length + l2recs.filter(r=> r.errors === 0).length;
+  /* the final screen only reports LEVEL 2 - level 1 already has its own complete page */
+  const onlyL2 = (S.level === 2) || (S.mode === 'l2');
+  const scopeRecs = onlyL2 ? ((S && S.l2records) ? S.l2records : []) : S.records;
+  const total = onlyL2 ? LEVEL2.length : WORDS.length;
+  const completed = scopeRecs.length;
+  const perfect = scopeRecs.filter(r=> r.errors === 0).length;
   const stars = completed > 0 ? (perfect === completed ? 5 : (perfect >= completed * 0.8 ? 4 : 3)) : 0;
 
-  /* error list: wrong items + unfinished current item on timeout */
-  const errItems = S.records.filter(r=> r.errors > 0).map(r=>({...r, timeout:false}));
-  if(timedOut && S.level === 2 && S.l2word && !l2recs.some(r=> r.word.en === S.l2word.en)){
+  /* error list: wrong items + the unfinished current item on timeout */
+  const errItems = scopeRecs.filter(r=> r.errors > 0).map(r=>({...r, timeout:false, l2: onlyL2}));
+  if(timedOut && onlyL2 && S.l2word && !scopeRecs.some(r=> r.word.en === S.l2word.en)){
     errItems.push({ word:S.l2word, errors:S.l2errs, timeout:true, l2:true });
-  } else if(timedOut && S.word && !S.records.some(r=> r.word.en === S.word.en)){
+  } else if(timedOut && !onlyL2 && S.word && !S.records.some(r=> r.word.en === S.word.en)){
     errItems.push({ word:S.word, errors:S.itemErrors, rp:S.isRP, timeout:true });
   }
-  l2recs.filter(r=> r.errors > 0).forEach(r=>{
-    errItems.push({ word:r.word, errors:r.errors, timeout:false, l2:true });
-  });
+
+  const head = timedOut ? "TIME'S UP!" : (onlyL2 ? 'LEVEL 2 COMPLETE!' : 'RECEIPT');
+  const sub = onlyL2
+    ? `LEVEL 2 · SENTENCE CHECK · ${completed}/${total} DONE`
+    : `DUTY-FREE MART · ${completed}/${total} ITEMS`;
 
   let html = `<div class="rh"></div><div class="inner">
-    <h2>${timedOut ? "TIME'S UP!" : 'RECEIPT'}</h2>
-    <div class="sub">DUTY-FREE MART · ${completed}/${total} ITEMS</div>`;
+    <h2>${head}</h2>
+    <div class="sub">${sub}</div>`;
 
-  html += `<div class="errbox"><h3>ERROR LIST · PLEASE REVIEW THESE WORDS</h3>`;
+  html += `<div class="errbox"><h3>${onlyL2 ? 'LEVEL 2 ERRORS · REVIEW THESE SENTENCES' : 'ERROR LIST · PLEASE REVIEW THESE WORDS'}</h3>`;
   if(errItems.length === 0){
-    html += `<div class="allgood">Perfect shopping! No mistakes.</div>`;
+    html += `<div class="allgood">${onlyL2 ? 'Perfect! Every sentence is correct.' : 'Perfect shopping! No mistakes.'}</div>`;
   } else {
     errItems.forEach(r=>{
       html += `<li><div class="l"><b>${r.word.en}</b> <i style="font-style:normal;color:#a2937f;font-size:11px"> ${r.word.pos}</i>
@@ -1176,27 +1180,6 @@ function endGame(timedOut){
   }
   html += `</div>`;
 
-  if(completed > 0){
-    S.records.forEach(r=>{
-      const ok = r.errors === 0;
-      html += `<div class="rline">
-        <div class="l"><b>${r.word.en}</b> <i>${r.word.pos}</i>${r.rp ? '<span class="rp-tag">RED PACKET</span>' : ''}
-          <div>${r.word.zh}</div></div>
-        <div class="r ${ok?'ok':'no'}">${ok ? 'CLEAN' : r.errors + ' WRONG'}</div>
-      </div>`;
-    });
-    if(l2recs.length > 0){
-      html += `<div class="sub" style="margin-top:12px">LEVEL 2 · SENTENCE CHECK</div>`;
-      l2recs.forEach(r=>{
-        const ok = r.errors === 0;
-        html += `<div class="rline">
-          <div class="l"><b>${r.word.en}</b> <i>${r.word.pos}</i>
-            <div>${r.word.zh}</div></div>
-          <div class="r ${ok?'ok':'no'}">${ok ? 'CLEAN' : r.errors + ' WRONG'}</div>
-        </div>`;
-      });
-    }
-  }
   html += `<div class="sum">COINS <b>${S.coins}</b> &nbsp;·&nbsp; PERFECT ${perfect}/${completed || 0}</div>
     <div class="stars">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}</div></div>`;
   $('receipt').innerHTML = html;
