@@ -315,6 +315,10 @@
   .stars{text-align:center;font-size:24px;margin-top:4px;letter-spacing:4px;color:var(--yellow);
     -webkit-text-stroke:1px var(--ink);}
   .actions{text-align:center;margin-top:18px;}
+  /* level 1 finished: three side-by-side choices */
+  .actions.trio{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+  .actions.trio .go{margin-top:0;flex:1 1 168px;max-width:290px;padding:12px 14px;font-size:15px;}
+  .actions.trio .go small{font-size:9.5px;letter-spacing:1.5px;}
   .rp-tag{display:inline-block;background:#e04b38;color:#ffe9b0;border-radius:8px;
     font-size:10px;font-weight:800;padding:1px 7px;margin-left:6px;letter-spacing:1px;}
   /* ---- level 2 · sentence fill-in ---- */
@@ -534,6 +538,15 @@
     <div class="receipt" id="receipt"></div>
     <div class="actions">
       <button class="go" onclick="startGame()">PLAY AGAIN<small>NEW ORDER</small></button>
+      <button class="go" onclick="goHome()" style="background:#ff9f43;color:#fff">HOME<small>BACK TO COVER</small></button>
+    </div>
+  </div>
+
+  <div class="screen" id="l1Screen">
+    <div class="receipt" id="l1receipt"></div>
+    <div class="actions trio">
+      <button class="go" onclick="replayLevel1()" style="background:#ffe3ec">PLAY AGAIN<small>LEVEL 1</small></button>
+      <button class="go" onclick="goLevel2()" style="background:var(--teal)">NEXT LEVEL &#10148;<small>LEVEL 2 &middot; NO TIME LIMIT</small></button>
       <button class="go" onclick="goHome()" style="background:#ff9f43;color:#fff">HOME<small>BACK TO COVER</small></button>
     </div>
   </div>
@@ -805,8 +818,10 @@ $('speakerBtn').onclick = ()=>{
 function startItem(){
   if(!S || S.ended) return;
   if(S.i >= S.order.length){
-    if(S.mode === 'l1'){ endGame(false); }   /* level-1-only run ends after 24 items */
-    else { startLevel2(); }
+    /* level 1 finished: show the error-only summary and let the student choose
+       what to do next (play again / go to level 2 / back home) */
+    if(S.mode === 'l2'){ startLevel2(); }
+    else { endLevel1(); }
     return;
   }
   S.word = WORDS[S.order[S.i]];
@@ -1084,6 +1099,52 @@ function buzz(){
     g.gain.exponentialRampToValueAtTime(.001, buzzCtx.currentTime + .2);
     o.start(); o.stop(buzzCtx.currentTime + .2);
   }catch(e){}
+}
+
+/* ---- level 1 finished: error-only summary + three choices ---- */
+function endLevel1(){
+  if(!S || S.l1Done) return;
+  S.l1Done = true;
+  S.locked = true;
+  stopTimer();
+  try{ player.pause(); }catch(e){}
+  const wrong = S.records.filter(r=> r.errors > 0);
+  const clean = S.records.length - wrong.length;
+
+  let html = `<div class="rh"></div><div class="inner">
+    <h2>LEVEL 1 COMPLETE!</h2>
+    <div class="sub">DUTY-FREE MART · ${S.records.length}/${WORDS.length} ITEMS</div>`;
+  html += `<div class="errbox"><h3>ERROR LIST · PLEASE REVIEW THESE WORDS</h3>`;
+  if(wrong.length === 0){
+    html += `<div class="allgood">Perfect shopping! No mistakes.</div>`;
+  } else {
+    html += `<ul>`;
+    wrong.forEach(r=>{
+      html += `<li><div class="l"><b>${r.word.en}</b> <i style="font-style:normal;color:#a2937f;font-size:11px"> ${r.word.pos}</i>
+        <div>${r.word.zh}</div></div>
+        <div class="st">${r.errors} WRONG</div></li>`;
+    });
+    html += `</ul>`;
+  }
+  html += `</div>`;
+  html += `<div class="sum">COINS <b>${S.coins}</b> &nbsp;·&nbsp; WRONG <b>${wrong.length}</b></div>`;
+  html += `</div>`;
+  $('l1receipt').innerHTML = html;
+  show('l1Screen');
+}
+
+function replayLevel1(){
+  if(!S) return;
+  startGame();          /* same mode, shuffled order, fresh timer */
+}
+
+function goLevel2(){
+  if(!S) return;
+  S.l1Done = false;
+  S.locked = false;
+  S.mode = 'full';      /* so the final receipt counts 24 + 10 items */
+  show('gameScreen');
+  startLevel2();
 }
 
 /* ---- end / receipt with error list ---- */
