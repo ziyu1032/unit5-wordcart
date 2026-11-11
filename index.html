@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duty-Free Mart · FTP Unit 5 Lesson A</title>
+<style>
+  :root{--ink:#2f2a26;--cream:#fff8ec;--red:#e8452f;--orange:#ff9f43;--teal:#2ec4b6;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;color:var(--ink);
+    background:radial-gradient(circle at 20px 20px,rgba(255,255,255,.9) 3px,transparent 3.5px) 0 0/44px 44px,
+    linear-gradient(170deg,#e9f7f4 0%,#fff4e3 55%,#ffe8e4 100%);
+    min-height:100vh;padding:10px;display:flex;align-items:center;justify-content:center;}
+  .cover{width:100%;max-width:520px;background:var(--cream);border:4px solid var(--ink);
+    border-radius:22px;box-shadow:7px 7px 0 rgba(47,42,38,.16);overflow:hidden;}
+  .awning{height:52px;background:repeating-linear-gradient(90deg,var(--red) 0 44px,var(--cream) 44px 88px);position:relative;}
+  .awning::after{content:"";position:absolute;left:0;right:0;top:52px;height:16px;background-color:var(--cream);
+    background-image:radial-gradient(circle at 22px 0,var(--red) 22px,transparent 22.5px);
+    background-repeat:repeat-x;background-size:88px 16px;}
+  .cover-body{padding:30px 18px 28px;text-align:center;}
+  .sign{display:inline-block;background:#fff;border:4px solid var(--ink);border-radius:16px;
+    padding:12px 26px;box-shadow:4px 4px 0 rgba(47,42,38,.18);transform:rotate(-1.2deg);}
+  .sign h1{font-size:26px;letter-spacing:1.5px;line-height:1.1;}
+  .sign .sub{margin-top:6px;font-size:11px;letter-spacing:3px;color:#8a7a68;font-weight:800;}
+  .pick{margin-top:18px;font-size:15px;font-weight:800;letter-spacing:1px;color:#5c4a3a;}
+  .row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:14px;}
+  .go{display:block;min-width:200px;border:4px solid var(--ink);cursor:pointer;font-family:inherit;
+    color:var(--ink);font-size:19px;font-weight:800;letter-spacing:1px;text-decoration:none;
+    padding:16px 22px;border-radius:18px;background:var(--teal);
+    box-shadow:4px 4px 0 var(--ink);transition:.12s;}
+  .go:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink);}
+  .go small{display:block;font-size:11px;letter-spacing:1.5px;margin-top:4px;opacity:.8;font-weight:800;}
+  .auto{margin-top:16px;font-size:12px;letter-spacing:1px;color:#a2937f;font-weight:800;}
+</style>
+</head>
+<body>
+  <div class="cover">
+    <div class="awning"></div>
+    <div class="cover-body">
+      <div class="sign">
+        <h1>DUTY-FREE MART</h1>
+        <div class="sub">FTP &middot; UNIT 5 &middot; LESSON A</div>
+      </div>
+      <p class="pick">WORD CART GAME &middot; CHOOSE YOUR VERSION</p>
+      <div class="row">
+        <a class="go" id="pcBtn" href="desktop.html">&#128187; COMPUTER VERSION<small>BIG FONTS &middot; PC / PROJECTOR</small></a>
+        <a class="go" id="phBtn" style="background:#ffe3ec" href="mobile.html">&#128241; PHONE VERSION<small>EASY TAPS &middot; PHONE / TABLET</small></a>
+      </div>
+      <p class="auto" id="autoLine">OPENING THE RIGHT VERSION IN <b id="cnt">3</b>S&hellip;</p>
+    </div>
+  </div>
+<script>
+  var isPhone = Math.min(screen.width, screen.height) <= 768 ||
+                /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+  var target = isPhone ? 'mobile.html' : 'desktop.html';
+  var n = 3;
+  var iv = setInterval(function(){
+    n--;
+    var c = document.getElementById('cnt');
+    if(c) c.textContent = n;
+    if(n <= 0){ clearInterval(iv); location.replace(target); }
+  }, 1000);
+  ['pcBtn','phBtn'].forEach(function(id){
+    document.getElementById(id).addEventListener('click', function(){
+      clearInterval(iv);
+      var a = document.getElementById('autoLine');
+      if(a) a.style.display = 'none';
+    });
+  });
+</script>
+</body>
+</html>
