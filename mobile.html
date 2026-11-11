@@ -357,6 +357,24 @@
     .howto{font-size:12.5px;}
     .howto b{font-size:12.5px;}
   }
+
+  /* ====== MOBILE FIXES · 中文释义换行放大 + 时间常驻 ====== */
+  /* 中文释义：允许换行、字号放大（英文单词仍单行 + fitWord 缩字） */
+  .card .word.zh{white-space:normal;font-size:17px;line-height:1.45;}
+  .card{min-height:130px;padding:36px 10px 14px;}
+  .card.rp{padding-top:54px;}
+  /* 购物车清单释义放大 */
+  .ci .z{font-size:14px;line-height:1.5;}
+  /* 第二关：句子与选项放大 */
+  .sentext{font-size:18px;line-height:1.7;}
+  .opt{font-size:17px;padding:13px 12px;}
+  /* TIME 胶囊：小屏固定悬浮右上角，滚动时始终可见 */
+  @media (max-width:560px){
+    #timePill{position:fixed;top:8px;right:8px;z-index:1000;
+      font-size:16px;padding:8px 15px;border-radius:13px;
+      box-shadow:0 4px 12px rgba(47,42,38,.3);background:#fff;}
+    .tbadge{top:-10px;right:-4px;font-size:15px;}
+  }
 </style>
 </head>
 <body>
