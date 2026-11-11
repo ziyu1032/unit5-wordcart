@@ -265,6 +265,9 @@
   .ci .z.wait{color:#c9a38c;font-style:italic;letter-spacing:2px;}
   .ci.rpdone{border-color:#8f1d12;background:#fff3d6;}
   .ci.rpdone .w::after{content:" 🧧";font-size:12px;}
+  /* 购物车堆货动画 */
+  .cartGoods rect{transform-box:fill-box;transform-origin:center bottom;animation:cgpop .35s ease both;}
+  @keyframes cgpop{0%{transform:scale(0);}70%{transform:scale(1.18);}100%{transform:scale(1);}}
   .cart-foot{
     display:flex;justify-content:space-between;font-size:12px;font-weight:800;
     letter-spacing:2px;color:#8a7a68;border-top:3px dashed #e2cbb0;padding-top:8px;
@@ -634,9 +637,7 @@ const CART_SVG = `
   <path d="M120 88 L292 88 L276 146 L136 146 Z" fill="#fff" stroke="#2f2a26" stroke-width="3.4" stroke-linejoin="round"/>
   <path d="M144 90 v54 M168 90 v54 M192 90 v54 M216 90 v54 M240 90 v54 M264 90 v54" stroke="#d7e3ec" stroke-width="2.6"/>
   <path d="M122 108 h168 M127 127 h158" stroke="#d7e3ec" stroke-width="2.6"/>
-  <rect x="152" y="72" width="16" height="16" rx="3" fill="#ff9f43" stroke="#2f2a26" stroke-width="2.6"/>
-  <rect x="174" y="66" width="13" height="22" rx="3" fill="#ff6b6b" stroke="#2f2a26" stroke-width="2.6"/>
-  <rect x="194" y="74" width="18" height="14" rx="3" fill="#4d96ff" stroke="#2f2a26" stroke-width="2.6"/>
+  <g class="cartGoods"></g>
   <path d="M150 146 v8 M260 146 v8" stroke="#2f2a26" stroke-width="4"/>
   <circle cx="156" cy="158" r="9" fill="#fff" stroke="#2f2a26" stroke-width="3.4"/>
   <circle cx="252" cy="158" r="9" fill="#fff" stroke="#2f2a26" stroke-width="3.4"/>
@@ -645,7 +646,7 @@ document.getElementById('coverScene').innerHTML = CART_SVG;
 document.getElementById('cartScene').innerHTML = CART_SVG;
 
 /* ---- audio ---- */
-let S = null, timerId = null;
+let S = null, timerId = null, cgCount = 0;
 const $ = id => document.getElementById(id);
 const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
 
@@ -743,6 +744,9 @@ function startGame(mode){
     mode: MODE, level:1, l2order:[], l2i:0, l2records:[]
   };
   $('cartList').innerHTML = '';
+  cgCount = 0;
+  const cg = document.querySelector('#cartScene .cartGoods');
+  if(cg) cg.innerHTML = '';
   document.querySelectorAll('.drop-rp,.drop-hint').forEach(e=>e.remove());
   $('rpBanner').classList.remove('show');
   showL2(false);
@@ -876,6 +880,7 @@ function pick(w, el){
       }, S.isRP ? 620 : 520);
     } else {
       fillCartMeaning(S.word);
+      addCartGoods();
       S.coins += 10; S.done++;
       $('coins').textContent = S.coins;
       $('cartCoins').textContent = S.coins;
@@ -996,8 +1001,27 @@ $('l2Next').onclick = ()=>{
   startL2Item();
 };
 
-function addCartRow(word, rp){
-  const row = document.createElement('div');
+/* 每答对一件商品，购物车里堆一件（24 件分 4 行，从车沿往上堆） */
+const GOODS_COLORS = ['#ff9f43','#ff6b6b','#4d96ff','#2ec4b6','#ffd166','#9b6bff'];
+function addCartGoods(){
+  const g = document.querySelector('#cartScene .cartGoods');
+  if(!g) return;
+  const perRow = 6;
+  const row = Math.floor(cgCount / perRow), k = cgCount % perRow;
+  const w = 16 + (cgCount % 3) * 3;
+  const h = 12 + (cgCount % 4) * 3;
+  const x = 138 + k * 25 + (cgCount % 2) * 3;
+  const yBottom = 86 - row * 14;
+  const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  r.setAttribute('x', x); r.setAttribute('y', yBottom - h);
+  r.setAttribute('width', w); r.setAttribute('height', h);
+  r.setAttribute('rx', 3);
+  r.setAttribute('fill', GOODS_COLORS[cgCount % GOODS_COLORS.length]);
+  r.setAttribute('stroke', '#2f2a26'); r.setAttribute('stroke-width', '2.4');
+  g.appendChild(r);
+  cgCount++;
+}
+function addCartRow(word, rp){  const row = document.createElement('div');
   row.className = 'ci' + (S.isRP ? ' rpdone' : '');
   row.dataset.en = word.en;
   row.innerHTML = `<div class="w">${word.en}</div><div class="z wait">?</div>`;
